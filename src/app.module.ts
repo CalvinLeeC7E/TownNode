@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
+import { SocketService } from './socket.service';
 import configuration from './config/configuration';
 
 @Module({
@@ -13,6 +14,6 @@ import configuration from './config/configuration';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SocketService],
 })
 export class AppModule {}
