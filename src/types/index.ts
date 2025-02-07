@@ -9,6 +9,14 @@ export enum ChainType {
   SOL = 'sol',
   CKB = 'ckb',
 }
+export interface BaseRequest {
+  uid: string;
+  data?: string;
+}
+export interface BaseResponse {
+  uid: string;
+  data: string;
+}
 export interface TxRequest {
   uid: string;
   chainType: ChainType;

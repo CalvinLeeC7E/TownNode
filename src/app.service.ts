@@ -3,10 +3,22 @@ import { ConfigService } from '@nestjs/config';
 import { AesGcm, SHA1 } from './crypto';
 import { Buffer } from 'node:buffer';
 import { EncryptedMsg } from './types';
+import { BotService } from './bot/bot.service';
+import { SocketService } from './socket/socket.service';
 
 @Injectable()
 export class AppService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly socketService: SocketService,
+    private readonly botService: BotService,
+  ) {}
+
+  main() {
+    this.socketService.onConnection$.subscribe(() => {
+      this.socketService.onReceiveCreateBot(() => this.botService.addBot());
+    });
+  }
 
   getUnixNow(): number {
     return Math.floor(Date.now() / 1000);
