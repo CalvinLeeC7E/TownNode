@@ -20,13 +20,21 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@ckb-lumos/base": "0.22.2",
+    "@ckb-lumos/codec": "0.21.1",
+    "@ckb-lumos/lumos": "0.22.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "4.0.0",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/mongoose": "11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@solana/web3.js": "1.98.0",
+    "bs58": "6.0.0",
+    "mongoose": "8.10.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "socket.io-client": "4.8.1"
+    "socket.io-client": "4.8.1",
+    "viem": "2.22.23"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
