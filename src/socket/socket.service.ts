@@ -3,6 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { ConfigService } from '@nestjs/config';
 import { BaseRequest, EncryptedMsg } from '../types';
 import { Subject } from 'rxjs';
+import { encryptMsg } from '../crypto';
 
 @Global()
 @Injectable()
@@ -58,13 +59,20 @@ export class SocketService implements OnModuleInit {
     this.socket.on('tx', callback);
   }
 
+  private encryptData(plaintext: string) {
+    const aesKey = this.configService.get<string>('aesKey')!;
+    const token = this.configService.get<string>('token')!;
+    return encryptMsg(token, aesKey, plaintext);
+  }
+
   onReceiveCreateBot(callback: () => Promise<Record<string, string>>) {
     this.socket.off('create_bot');
     this.socket.on('create_bot', async ({ uid }: BaseRequest) => {
       const bot = await callback();
+      const data = JSON.stringify(this.encryptData(JSON.stringify(bot)));
       this.socket.emit('after_create_bot', {
         uid,
-        data: JSON.stringify(bot),
+        data,
       });
     });
   }
