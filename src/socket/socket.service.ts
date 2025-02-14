@@ -1,9 +1,15 @@
 import { Global, Injectable, OnModuleInit } from '@nestjs/common';
 import { io, Socket } from 'socket.io-client';
 import { ConfigService } from '@nestjs/config';
-import { BaseRequest, EncryptedMsg } from '../types';
+import { BaseRequest, TxRequest } from '../types';
 import { Subject } from 'rxjs';
-import { encryptMsg } from '../crypto';
+import { decryptMsg, encryptMsg, safeJsonParse } from '../crypto';
+
+enum SocketEvent {
+  SaveNodeMessage = 'save_node_msg',
+  SignTx = 'sign_tx',
+  CreateBot = 'create_bot',
+}
 
 @Global()
 @Injectable()
@@ -54,23 +60,60 @@ export class SocketService implements OnModuleInit {
     });
   }
 
-  onReceiveTx(callback: (data: EncryptedMsg) => void) {
-    this.socket.off('tx');
-    this.socket.on('tx', callback);
+  onReceiveTx(callback: (data: TxRequest) => Promise<string | undefined>) {
+    this.socket.off(SocketEvent.SignTx);
+    this.socket.on(SocketEvent.SignTx, async ({ uid, data }: BaseRequest) => {
+      if (!data) {
+        return;
+      }
+      try {
+        const msg = this.decryptData(data);
+        const txData = safeJsonParse(msg.data) as TxRequest;
+        const signedTx = await callback({
+          ...txData,
+          uid,
+        });
+        if (!signedTx) {
+          return;
+        }
+        const encryptData = JSON.stringify(
+          this.encryptData(JSON.stringify({ signedTx })),
+        );
+        this.socket.emit(SocketEvent.SaveNodeMessage, {
+          uid,
+          data: encryptData,
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }
+
+  private getTokenAndAesKey() {
+    const aesKey = this.configService.get<string>('aesKey')!;
+    const token = this.configService.get<string>('token')!;
+    return {
+      aesKey,
+      token,
+    };
+  }
+
+  private decryptData(encryptedData: string) {
+    const { aesKey, token } = this.getTokenAndAesKey();
+    return decryptMsg(token, aesKey, encryptedData);
   }
 
   private encryptData(plaintext: string) {
-    const aesKey = this.configService.get<string>('aesKey')!;
-    const token = this.configService.get<string>('token')!;
+    const { aesKey, token } = this.getTokenAndAesKey();
     return encryptMsg(token, aesKey, plaintext);
   }
 
   onReceiveCreateBot(callback: () => Promise<Record<string, string>>) {
-    this.socket.off('create_bot');
-    this.socket.on('create_bot', async ({ uid }: BaseRequest) => {
+    this.socket.off(SocketEvent.CreateBot);
+    this.socket.on(SocketEvent.CreateBot, async ({ uid }: BaseRequest) => {
       const bot = await callback();
       const data = JSON.stringify(this.encryptData(JSON.stringify(bot)));
-      this.socket.emit('after_create_bot', {
+      this.socket.emit(SocketEvent.SaveNodeMessage, {
         uid,
         data,
       });
