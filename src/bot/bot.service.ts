@@ -5,12 +5,14 @@ import { config, hd, Script } from '@ckb-lumos/lumos';
 import { encodeToAddress } from '@ckb-lumos/lumos/helpers';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { ConfigService } from '@nestjs/config';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, VersionedTransaction } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { InjectModel } from '@nestjs/mongoose';
 import { Bot, BotDocument } from './schemas/bot.schema';
 import { Model } from 'mongoose';
 import { SocketService } from '../socket/socket.service';
+import { ChainType, TxRequest } from '../types';
+import { Buffer } from 'node:buffer';
 
 @Injectable()
 export class BotService {
@@ -85,5 +87,29 @@ export class BotService {
       ckbTestAddress,
       solAddress,
     };
+  }
+
+  async signTx(txReq: TxRequest): Promise<string | undefined> {
+    if (txReq.chainType === ChainType.SOL) {
+      return this.signSolTx(txReq.from, txReq.data);
+    }
+    return;
+  }
+
+  private async signSolTx(
+    from: string,
+    rawTx: string,
+  ): Promise<string | undefined> {
+    const bot = await this.botModel.findOne({ solAddress: from });
+    if (!bot) {
+      return;
+    }
+    const privateKey = this.decryptPrivateKey(bot.solPrivateKey);
+    const signer = Keypair.fromSecretKey(bs58.decode(privateKey));
+    const versionedTx = VersionedTransaction.deserialize(
+      Buffer.from(rawTx, 'base64'),
+    );
+    versionedTx.sign([signer]);
+    return Buffer.from(versionedTx.serialize()).toString('base64');
   }
 }
