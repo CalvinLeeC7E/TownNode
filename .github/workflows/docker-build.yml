@@ -65,7 +65,7 @@ jobs:
           context: .
           push: true
           platforms: ${{ matrix.platform }}
-          labels: ${{steps.tag.outputs.tag}}
-          outputs: type=image,name=${{ env.FULL_IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          tags: ${{ env.FULL_IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+          outputs: type=image,push=true
 
 
