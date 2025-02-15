@@ -9,6 +9,7 @@ enum SocketEvent {
   SaveNodeMessage = 'save_node_msg',
   SignTx = 'sign_tx',
   CreateBot = 'create_bot',
+  ConnectTest = 'connect_test',
 }
 
 @Global()
@@ -117,6 +118,27 @@ export class SocketService implements OnModuleInit {
         uid,
         data,
       });
+    });
+  }
+
+  onReceiveConnectTest() {
+    this.socket.off(SocketEvent.ConnectTest);
+    this.socket.on(SocketEvent.ConnectTest, ({ uid, data }: BaseRequest) => {
+      if (!data) {
+        return;
+      }
+      try {
+        const msg = this.decryptData(data);
+        const encryptData = JSON.stringify(
+          this.encryptData('test_' + msg.data),
+        );
+        this.socket.emit(SocketEvent.SaveNodeMessage, {
+          uid,
+          data: encryptData,
+        });
+      } catch (e) {
+        console.error(e);
+      }
     });
   }
 }

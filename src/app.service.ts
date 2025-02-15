@@ -17,6 +17,7 @@ export class AppService {
       this.socketService.onReceiveTx(
         async (data) => await this.botService.signTx(data),
       );
+      this.socketService.onReceiveConnectTest();
     });
   }
 
