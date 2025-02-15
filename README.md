@@ -4,6 +4,10 @@
 
 Bots sign node self hosted.
 
+## Deploy
+* Make sure your device has Docker installed.
+* Download [Deploy.zip](https://github.com/CalvinLeeC7E/TownNode/blob/main/TownNodeDeploy.zip) to your device.
+
 ## Project setup
 
 ```bash
