@@ -1,3 +1,5 @@
+# TownNode
+
 ## Description
 
 Bots sign node self hosted.
@@ -23,4 +25,4 @@ $ pnpm run start:prod
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+TownNode is [GPL-3.0 license](https://github.com/CalvinLeeC7E/TownNode/blob/main/LICENSE).
