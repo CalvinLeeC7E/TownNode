@@ -45,6 +45,8 @@ export class BotService {
   }
 
   private encryptPrivateKey(privateKey: string) {
+    const isUsePassword = this.configService.get<boolean>('isUsePassword')!;
+    if (!isUsePassword) return privateKey;
     const secret = this.configService.get<string>('password')!;
     const key = Buffer.from(secret, 'utf8');
     const cipher = crypto.createCipheriv('aes-256-ecb', key, null);
@@ -53,13 +55,15 @@ export class BotService {
     return encryptedData;
   }
 
-  private decryptPrivateKey(encryptedPrivateKey: string): Hex {
+  private decryptPrivateKey(encryptedPrivateKey: string) {
+    const isUsePassword = this.configService.get<boolean>('isUsePassword')!;
+    if (!isUsePassword) return encryptedPrivateKey;
     const secret = this.configService.get<string>('password')!;
     const key = Buffer.from(secret, 'utf8');
     const decipher = crypto.createDecipheriv('aes-256-ecb', key, null);
     let decryptedData = decipher.update(encryptedPrivateKey, 'base64', 'utf8');
     decryptedData += decipher.final('utf8');
-    return decryptedData as Hex;
+    return decryptedData;
   }
 
   async addBot() {
